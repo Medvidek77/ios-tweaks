@@ -25,6 +25,7 @@ static void loadPrefs() {
 
     if (enabled) {
         self.layer.cornerRadius = cornerRadius;
+        self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
     }
@@ -43,6 +44,7 @@ static void loadPrefs() {
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
+        self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
     }
@@ -61,6 +63,7 @@ static void loadPrefs() {
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
+        self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
     }
@@ -79,6 +82,7 @@ static void loadPrefs() {
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
+        self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
     }
 }
@@ -96,6 +100,7 @@ static void loadPrefs() {
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
+        self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
     }
 }
@@ -108,15 +113,17 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 
 %ctor {
-    NSLog(@"[RoundCC] Tweak initialized");
     loadPrefs();
 
+    #ifdef DEBUG
+    NSLog(@"[RoundCC] Tweak initialized");
     // Runtime existence check - let the device tell us which classes actually exist
     NSLog(@"[RoundCC] CCUIContentModuleContainerView: %d", NSClassFromString(@"CCUIContentModuleContainerView") != nil);
     NSLog(@"[RoundCC] CCUIRoundButton: %d", NSClassFromString(@"CCUIRoundButton") != nil);
     NSLog(@"[RoundCC] CCUILabeledRoundButton: %d", NSClassFromString(@"CCUILabeledRoundButton") != nil);
     NSLog(@"[RoundCC] CCUIControlCenterSlider: %d", NSClassFromString(@"CCUIControlCenterSlider") != nil);
     NSLog(@"[RoundCC] CCUIModuleSliderView: %d", NSClassFromString(@"CCUIModuleSliderView") != nil);
+    #endif
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
