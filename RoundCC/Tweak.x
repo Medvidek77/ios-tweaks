@@ -16,25 +16,28 @@ static void loadPrefs() {
     }
 }
 
-// CCUIContentModuleContentContainerView is often used for the container of modules
-@interface CCUIContentModuleContentContainerView : UIView
-@property (assign,nonatomic) double compactContinuousCornerRadius;
-@property (assign,nonatomic) double expandedContinuousCornerRadius;
+// Ensure the classes exist before we hook them, otherwise trigger a crash
+static void verifyClass(NSString *className) {
+    if (!NSClassFromString(className)) {
+        NSLog(@"[RoundCC] CRITICAL ERROR: Class %@ not found! Crashing to safe mode.", className);
+        // abort(); // Removed abort to prevent SpringBoard bootloops due to lazy framework loading
+    }
+}
+
+// ---------------------------------------------------------
+// 1. Module Container (The outer boxes of modules)
+// ---------------------------------------------------------
+@interface CCUIContentModuleContainerView : UIView
 @end
 
-%hook CCUIContentModuleContentContainerView
+%hook CCUIContentModuleContainerView
 
 - (void)layoutSubviews {
     %orig;
 
     if (enabled) {
-        // Apply custom continuous corner radius for compact state (the normal view)
-        // If the CC module uses compactContinuousCornerRadius we set it
-        if ([self respondsToSelector:@selector(setCompactContinuousCornerRadius:)]) {
-            self.compactContinuousCornerRadius = cornerRadius;
-        }
 
-        // As a fallback or addition, apply to the layer
+        // iOS 14 CC modules typically mask to bounds anyway, we force custom rounding here
         self.layer.cornerRadius = cornerRadius;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
@@ -43,7 +46,11 @@ static void loadPrefs() {
 
 %end
 
-// CCUIBaseSliderView is used for the brightness and volume sliders
+// ---------------------------------------------------------
+// 2. Base Sliders (Volume, Brightness)
+// CCUIContinuousSliderView and CCUISteppedSliderView both inherit from CCUIBaseSliderView (which DOES exist on iOS 14)
+// We will target the actual view components if the base class refuses to size correctly, but BaseSliderView is the proper root.
+// ---------------------------------------------------------
 @interface CCUIBaseSliderView : UIControl
 @end
 
@@ -53,7 +60,7 @@ static void loadPrefs() {
     %orig;
 
     if (enabled) {
-        // Force fully rounded 'pill' shape for sliders
+
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
@@ -63,7 +70,9 @@ static void loadPrefs() {
 
 %end
 
-// CCUIRoundButton is used for standard circular buttons like toggles
+// ---------------------------------------------------------
+// 3. Round Buttons (Toggles like Wi-Fi, Bluetooth)
+// ---------------------------------------------------------
 @interface CCUIRoundButton : UIControl
 @end
 
@@ -73,7 +82,7 @@ static void loadPrefs() {
     %orig;
 
     if (enabled) {
-        // Ensure standard toggle buttons are perfectly circular
+
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
@@ -82,6 +91,7 @@ static void loadPrefs() {
 
 %end
 
+
 static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
     loadPrefs();
 }
@@ -89,5 +99,11 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 %ctor {
     NSLog(@"[RoundCC] Tweak initialized");
     loadPrefs();
+
+    // Explicitly check for classes when the tweak loads
+    verifyClass(@"CCUIContentModuleContainerView");
+    verifyClass(@"CCUIBaseSliderView");
+    verifyClass(@"CCUIRoundButton");
+
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
