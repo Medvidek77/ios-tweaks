@@ -16,13 +16,13 @@
 			<key>default</key>
 			<true/>
 			<key>defaults</key>
-			<string>com.yourname.roundccprefs</string>
+			<string>com.medvidek77.roundccprefs</string>
 			<key>key</key>
 			<string>enabled</string>
 			<key>label</key>
 			<string>Enable Tweak</string>
 			<key>PostNotification</key>
-			<string>com.yourname.roundccprefs/ReloadPrefs</string>
+			<string>com.medvidek77.roundccprefs/ReloadPrefs</string>
 		</dict>
 
 		<dict>
@@ -37,7 +37,7 @@
 			<key>default</key>
 			<real>19.0</real>
 			<key>defaults</key>
-			<string>com.yourname.roundccprefs</string>
+			<string>com.medvidek77.roundccprefs</string>
 			<key>key</key>
 			<string>cornerRadius</string>
 			<key>min</key>
@@ -49,7 +49,7 @@
 			<key>isSegmented</key>
 			<false/>
 			<key>PostNotification</key>
-			<string>com.yourname.roundccprefs/ReloadPrefs</string>
+			<string>com.medvidek77.roundccprefs/ReloadPrefs</string>
 		</dict>
 	</array>
 	<key>title</key>

@@ -1,7 +1,7 @@
 #import <UIKit/UIKit.h>
 
-#define kIdentifier @"com.yourname.roundccprefs"
-#define kSettingsChangedNotification (CFStringRef)@"com.yourname.roundccprefs/ReloadPrefs"
+#define kIdentifier @"com.medvidek77.roundccprefs"
+#define kSettingsChangedNotification (CFStringRef)@"com.medvidek77.roundccprefs/ReloadPrefs"
 
 static BOOL enabled = YES;
 static CGFloat cornerRadius = 19.0;

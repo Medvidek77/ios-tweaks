@@ -1,9 +1,9 @@
-Package: com.yourname.roundcc
+Package: com.medvidek77.roundcc
 Name: RoundCC
 Depends: mobilesubstrate, preferenceloader
 Version: 1.0.0
 Architecture: iphoneos-arm
 Description: A tweak to stylize the Control Center with custom rounded modules and colors.
-Maintainer: Your Name
-Author: Your Name
+Maintainer: Medvidek77
+Author: Medvidek77
 Section: Tweaks
