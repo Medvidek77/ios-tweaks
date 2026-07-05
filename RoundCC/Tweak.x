@@ -8,9 +8,11 @@ static CGFloat cornerRadius = 19.0;
 
 static void loadPrefs() {
     NSUserDefaults *prefs = [[NSUserDefaults alloc] initWithSuiteName:kIdentifier];
+    NSLog(@"[RoundCC] Loading Preferences...");
     if (prefs) {
         enabled = [prefs objectForKey:@"enabled"] ? [[prefs objectForKey:@"enabled"] boolValue] : YES;
         cornerRadius = [prefs objectForKey:@"cornerRadius"] ? [[prefs objectForKey:@"cornerRadius"] floatValue] : 19.0;
+        NSLog(@"[RoundCC] Preferences loaded - Enabled: %d, Corner Radius: %f", enabled, cornerRadius);
     }
 }
 
@@ -85,6 +87,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 }
 
 %ctor {
+    NSLog(@"[RoundCC] Tweak initialized");
     loadPrefs();
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 }
