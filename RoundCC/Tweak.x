@@ -14,8 +14,24 @@ static void loadPrefs() {
     }
 }
 
+// Ensure the class inherits from UIView so the compiler knows about layer and clipsToBounds
+@interface CCUIContentModuleContainerView : UIView
+@end
 
-// CCUIControlCenterSlider confirmed real class (ControlCenterUIKit symbol dump)
+%hook CCUIContentModuleContainerView
+
+- (void)layoutSubviews {
+    %orig;
+
+    if (enabled) {
+        self.layer.cornerRadius = cornerRadius;
+        [self.layer setCornerCurve:kCACornerCurveContinuous];
+        self.clipsToBounds = YES;
+    }
+}
+
+%end
+
 @interface CCUIControlCenterSlider : UIControl
 @end
 
@@ -34,7 +50,6 @@ static void loadPrefs() {
 
 %end
 
-// CCUIModuleSliderView also confirmed real, some iOS versions use this one instead
 @interface CCUIModuleSliderView : UIControl
 @end
 
@@ -53,7 +68,6 @@ static void loadPrefs() {
 
 %end
 
-// CCUIRoundButton is used for standard circular buttons like toggles
 @interface CCUIRoundButton : UIControl
 @end
 
@@ -71,7 +85,6 @@ static void loadPrefs() {
 
 %end
 
-// CCUILabeledRoundButton confirmed real (PowerModule source), covers labeled variants
 @interface CCUILabeledRoundButton : UIControl
 @end
 
@@ -94,20 +107,15 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 }
 
 %ctor {
+    NSLog(@"[RoundCC] Tweak initialized");
     loadPrefs();
+
+    // Runtime existence check - let the device tell us which classes actually exist
+    NSLog(@"[RoundCC] CCUIContentModuleContainerView: %d", NSClassFromString(@"CCUIContentModuleContainerView") != nil);
+    NSLog(@"[RoundCC] CCUIRoundButton: %d", NSClassFromString(@"CCUIRoundButton") != nil);
+    NSLog(@"[RoundCC] CCUILabeledRoundButton: %d", NSClassFromString(@"CCUILabeledRoundButton") != nil);
+    NSLog(@"[RoundCC] CCUIControlCenterSlider: %d", NSClassFromString(@"CCUIControlCenterSlider") != nil);
+    NSLog(@"[RoundCC] CCUIModuleSliderView: %d", NSClassFromString(@"CCUIModuleSliderView") != nil);
+
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
-}// Reverting to specific class hooks based on the user's latest findings,
-// avoiding global UIView hooks to prevent massive SpringBoard lag.
-%hook CCUIContentModuleContainerView
-
-- (void)layoutSubviews {
-    %orig;
-
-    if (enabled) {
-        self.layer.cornerRadius = cornerRadius;
-        [self.layer setCornerCurve:kCACornerCurveContinuous];
-        self.clipsToBounds = YES;
-    }
 }
-
-%end
