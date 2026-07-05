@@ -7,7 +7,9 @@
 		<key>Bundles</key>
 		<array>
 			<string>com.apple.springboard</string>
+			<string>com.apple.ControlCenter</string>
 			<string>com.apple.controlcenter</string>
+			<string>com.apple.Preferences</string>
 		</array>
 	</dict>
 </dict>

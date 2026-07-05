@@ -106,6 +106,15 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
     loadPrefs();
 }
 
+%hook UIViewController
+- (void)viewDidAppear:(BOOL)animated {
+    %orig;
+    if ([NSStringFromClass([self class]) containsString:@"PSRootController"]) {
+        NSLog(@"[RoundCC] DEBUG: INJECTED INTO PREFERENCES APP SUCCESSFULLY!");
+    }
+}
+%end
+
 %ctor {
     NSLog(@"[RoundCC] Tweak initialized");
     loadPrefs();
