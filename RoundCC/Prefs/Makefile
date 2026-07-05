@@ -8,7 +8,7 @@ RoundCCPrefs_FRAMEWORKS = UIKit
 RoundCCPrefs_PRIVATE_FRAMEWORKS = Preferences
 RoundCCPrefs_INSTALL_PATH = /Library/PreferenceBundles
 RoundCCPrefs_CFLAGS = -fobjc-arc
-RoundCCPrefs_EXTRA_FRAMEWORKS = Cephei CepheiPrefs
+
 
 include $(THEOS)/makefiles/common.mk
 include $(THEOS_MAKE_PATH)/bundle.mk

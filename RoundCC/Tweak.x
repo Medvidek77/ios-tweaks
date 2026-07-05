@@ -2,46 +2,15 @@
 
 #define kIdentifier @"com.yourname.roundccprefs"
 #define kSettingsChangedNotification (CFStringRef)@"com.yourname.roundccprefs/ReloadPrefs"
-#define kSettingsPath @"/var/mobile/Library/Preferences/com.yourname.roundccprefs.plist"
 
 static BOOL enabled = YES;
 static CGFloat cornerRadius = 19.0;
-static NSString *moduleColorHex = @"";
-static UIColor *parsedModuleColor = nil;
-
-// Helper function to convert hex string to UIColor
-static UIColor *colorFromHexString(NSString *hexString) {
-    if (!hexString || [hexString isEqualToString:@""]) return nil;
-
-    NSString *cleanString = [hexString stringByReplacingOccurrencesOfString:@"#" withString:@""];
-    if ([cleanString length] == 3) {
-        cleanString = [NSString stringWithFormat:@"%@%@%@%@%@%@",
-                        [cleanString substringWithRange:NSMakeRange(0, 1)], [cleanString substringWithRange:NSMakeRange(0, 1)],
-                        [cleanString substringWithRange:NSMakeRange(1, 1)], [cleanString substringWithRange:NSMakeRange(1, 1)],
-                        [cleanString substringWithRange:NSMakeRange(2, 1)], [cleanString substringWithRange:NSMakeRange(2, 1)]];
-    }
-    if ([cleanString length] == 6) {
-        cleanString = [cleanString stringByAppendingString:@"ff"];
-    }
-
-    unsigned int baseValue = 0;
-    [[NSScanner scannerWithString:cleanString] scanHexInt:&baseValue];
-
-    float red = ((baseValue >> 24) & 0xFF) / 255.0f;
-    float green = ((baseValue >> 16) & 0xFF) / 255.0f;
-    float blue = ((baseValue >> 8) & 0xFF) / 255.0f;
-    float alpha = ((baseValue >> 0) & 0xFF) / 255.0f;
-
-    return [UIColor colorWithRed:red green:green blue:blue alpha:alpha];
-}
 
 static void loadPrefs() {
     NSUserDefaults *prefs = [[NSUserDefaults alloc] initWithSuiteName:kIdentifier];
     if (prefs) {
         enabled = [prefs objectForKey:@"enabled"] ? [[prefs objectForKey:@"enabled"] boolValue] : YES;
         cornerRadius = [prefs objectForKey:@"cornerRadius"] ? [[prefs objectForKey:@"cornerRadius"] floatValue] : 19.0;
-        moduleColorHex = [prefs objectForKey:@"moduleColor"] ? [prefs objectForKey:@"moduleColor"] : @"";
-        parsedModuleColor = colorFromHexString(moduleColorHex);
     }
 }
 
@@ -67,12 +36,6 @@ static void loadPrefs() {
         self.layer.cornerRadius = cornerRadius;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
-
-        // Apply custom background color if set
-        UIColor *customColor = parsedModuleColor;
-        if (customColor) {
-            self.backgroundColor = customColor;
-        }
     }
 }
 
@@ -93,11 +56,6 @@ static void loadPrefs() {
         self.layer.cornerRadius = minDim / 2.0;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
-
-        UIColor *customColor = parsedModuleColor;
-        if (customColor) {
-            self.backgroundColor = customColor;
-        }
     }
 }
 
@@ -117,11 +75,6 @@ static void loadPrefs() {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
         self.layer.cornerRadius = minDim / 2.0;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
-
-        UIColor *customColor = parsedModuleColor;
-        if (customColor) {
-            self.backgroundColor = customColor;
-        }
     }
 }
 

@@ -1,6 +1,6 @@
 Package: com.yourname.roundcc
 Name: RoundCC
-Depends: mobilesubstrate, ws.hbang.common (>= 1.13)
+Depends: mobilesubstrate
 Version: 1.0.0
 Architecture: iphoneos-arm
 Description: A tweak to stylize the Control Center with custom rounded modules and colors.
