@@ -14,24 +14,34 @@ static void loadPrefs() {
     }
 }
 
-// Ensure the class inherits from UIView so the compiler knows about layer and clipsToBounds
-@interface CCUIContentModuleContainerView : UIView
+// CCUIContentModuleContentContainerView (iOS 14) manages the actual background platter
+@interface CCUIContentModuleContentContainerView : UIView
+@property (assign,nonatomic) double compactContinuousCornerRadius;
+@property (assign,nonatomic) double expandedContinuousCornerRadius;
+@property (assign,nonatomic) BOOL moduleProvidesOwnPlatter;
 @end
 
-%hook CCUIContentModuleContainerView
+%hook CCUIContentModuleContentContainerView
 
 - (void)layoutSubviews {
     %orig;
 
-    if (enabled) {
-        self.layer.cornerRadius = cornerRadius;
-        self.layer.masksToBounds = YES;
-        [self.layer setCornerCurve:kCACornerCurveContinuous];
-        self.clipsToBounds = YES;
+    if (enabled && !self.moduleProvidesOwnPlatter) {
+        CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
+        CGFloat maxRadius = minDim / 2.0;
+        CGFloat safeRadius = MIN(cornerRadius, maxRadius);
+
+        self.compactContinuousCornerRadius = safeRadius;
+
+        // Ensure the expanded radius is proportional or also capped properly
+        // In expanded view, the module is larger, so maxRadius is larger.
+        // We will apply the requested cornerRadius, capped by the NEW bounds.
+        self.expandedContinuousCornerRadius = safeRadius;
     }
 }
 
 %end
+
 
 @interface CCUIControlCenterSlider : UIControl
 @end
@@ -43,7 +53,8 @@ static void loadPrefs() {
 
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
-        self.layer.cornerRadius = minDim / 2.0;
+        CGFloat maxRadius = minDim / 2.0;
+        self.layer.cornerRadius = MIN(cornerRadius, maxRadius);
         self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
@@ -62,7 +73,8 @@ static void loadPrefs() {
 
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
-        self.layer.cornerRadius = minDim / 2.0;
+        CGFloat maxRadius = minDim / 2.0;
+        self.layer.cornerRadius = MIN(cornerRadius, maxRadius);
         self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
         self.clipsToBounds = YES;
@@ -81,7 +93,8 @@ static void loadPrefs() {
 
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
-        self.layer.cornerRadius = minDim / 2.0;
+        CGFloat maxRadius = minDim / 2.0;
+        self.layer.cornerRadius = MIN(cornerRadius, maxRadius);
         self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
     }
@@ -99,7 +112,8 @@ static void loadPrefs() {
 
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
-        self.layer.cornerRadius = minDim / 2.0;
+        CGFloat maxRadius = minDim / 2.0;
+        self.layer.cornerRadius = MIN(cornerRadius, maxRadius);
         self.layer.masksToBounds = YES;
         [self.layer setCornerCurve:kCACornerCurveContinuous];
     }
@@ -111,14 +125,12 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
     loadPrefs();
 }
 
-
 %ctor {
     loadPrefs();
 
     #ifdef DEBUG
     NSLog(@"[RoundCC] Tweak initialized");
-    // Runtime existence check - let the device tell us which classes actually exist
-    NSLog(@"[RoundCC] CCUIContentModuleContainerView: %d", NSClassFromString(@"CCUIContentModuleContainerView") != nil);
+    NSLog(@"[RoundCC] CCUIContentModuleContentContainerView: %d", NSClassFromString(@"CCUIContentModuleContentContainerView") != nil);
     NSLog(@"[RoundCC] CCUIRoundButton: %d", NSClassFromString(@"CCUIRoundButton") != nil);
     NSLog(@"[RoundCC] CCUILabeledRoundButton: %d", NSClassFromString(@"CCUILabeledRoundButton") != nil);
     NSLog(@"[RoundCC] CCUIControlCenterSlider: %d", NSClassFromString(@"CCUIControlCenterSlider") != nil);
