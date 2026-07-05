@@ -1,3 +1,4 @@
+export LDFLAGS += -Xlinker -no_fixup_chains
 export TARGET := iphone:clang:14.5:14.0
 export ARCHS = arm64
 
