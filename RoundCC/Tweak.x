@@ -14,33 +14,12 @@ static void loadPrefs() {
     }
 }
 
-// ---------------------------------------------------------
-// 1. Module Container (The outer boxes of modules)
-// ---------------------------------------------------------
-@interface CCUIContentModuleContainerView : UIView
+
+// CCUIControlCenterSlider confirmed real class (ControlCenterUIKit symbol dump)
+@interface CCUIControlCenterSlider : UIControl
 @end
 
-%hook CCUIContentModuleContainerView
-
-- (void)layoutSubviews {
-    %orig;
-
-    if (enabled) {
-        self.layer.cornerRadius = cornerRadius;
-        [self.layer setCornerCurve:kCACornerCurveContinuous];
-        self.clipsToBounds = YES;
-    }
-}
-
-%end
-
-// ---------------------------------------------------------
-// 2. Base Sliders (Volume, Brightness)
-// ---------------------------------------------------------
-@interface CCUIBaseSliderView : UIControl
-@end
-
-%hook CCUIBaseSliderView
+%hook CCUIControlCenterSlider
 
 - (void)layoutSubviews {
     %orig;
@@ -55,9 +34,26 @@ static void loadPrefs() {
 
 %end
 
-// ---------------------------------------------------------
-// 3. Round Buttons (Toggles like Wi-Fi, Bluetooth)
-// ---------------------------------------------------------
+// CCUIModuleSliderView also confirmed real, some iOS versions use this one instead
+@interface CCUIModuleSliderView : UIControl
+@end
+
+%hook CCUIModuleSliderView
+
+- (void)layoutSubviews {
+    %orig;
+
+    if (enabled) {
+        CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
+        self.layer.cornerRadius = minDim / 2.0;
+        [self.layer setCornerCurve:kCACornerCurveContinuous];
+        self.clipsToBounds = YES;
+    }
+}
+
+%end
+
+// CCUIRoundButton is used for standard circular buttons like toggles
 @interface CCUIRoundButton : UIControl
 @end
 
@@ -75,6 +71,23 @@ static void loadPrefs() {
 
 %end
 
+// CCUILabeledRoundButton confirmed real (PowerModule source), covers labeled variants
+@interface CCUILabeledRoundButton : UIControl
+@end
+
+%hook CCUILabeledRoundButton
+
+- (void)layoutSubviews {
+    %orig;
+
+    if (enabled) {
+        CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
+        self.layer.cornerRadius = minDim / 2.0;
+        [self.layer setCornerCurve:kCACornerCurveContinuous];
+    }
+}
+
+%end
 
 static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
     loadPrefs();
@@ -83,4 +96,18 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 %ctor {
     loadPrefs();
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+}// Reverting to specific class hooks based on the user's latest findings,
+// avoiding global UIView hooks to prevent massive SpringBoard lag.
+%hook CCUIContentModuleContainerView
+
+- (void)layoutSubviews {
+    %orig;
+
+    if (enabled) {
+        self.layer.cornerRadius = cornerRadius;
+        [self.layer setCornerCurve:kCACornerCurveContinuous];
+        self.clipsToBounds = YES;
+    }
 }
+
+%end
