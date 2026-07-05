@@ -1,0 +1,1 @@
+sed -i 's/NSMutableDictionary \*prefs = \[\[NSMutableDictionary alloc\] initWithContentsOfFile:kSettingsPath\];/NSUserDefaults \*prefs = \[\[NSUserDefaults alloc\] initWithSuiteName:kIdentifier\];/g' /app/RoundCC/Tweak.x
