@@ -14,8 +14,7 @@ static void loadPrefs() {
     }
 }
 
-// CCUIContentModuleContainerViewController is the view controller managing the module geometry.
-// Hooking it allows us to return our custom radius cleanly for native animation systems.
+// CCUIContentModuleContainerViewController manages module geometry directly.
 @interface CCUIContentModuleContainerViewController : UIViewController
 - (double)_continuousCornerRadiusForCompactState;
 - (double)_continuousCornerRadiusForExpandedState;
@@ -26,8 +25,11 @@ static void loadPrefs() {
 - (double)_continuousCornerRadiusForCompactState {
     double orig = %orig;
     if (enabled) {
+        // Fallback size for standard CC modules if they haven't laid out yet (e.g. 68x68 for 1x1 modules on small iPhones)
         CGFloat minDim = MIN(self.view.bounds.size.width, self.view.bounds.size.height);
-        // We use minDim/2 as the maximum allowable radius before it deforms inwards.
+        if (minDim <= 0.0) {
+            minDim = 68.0;
+        }
         CGFloat maxRadius = minDim / 2.0;
         return MIN(userCornerRadius, maxRadius);
     }
@@ -37,12 +39,9 @@ static void loadPrefs() {
 - (double)_continuousCornerRadiusForExpandedState {
     double orig = %orig;
     if (enabled) {
-        // We do not have direct bounds to the expanded state at this exact point,
-        // but expanded state is always larger than compact state.
-        // Returning the user's custom radius is perfectly safe here, but we will
-        // cap it to a generous size to prevent internal deformation (e.g. 50 is typical max for sliders).
-        // Since expanded bounds are typically > 150pt, we can safely just return the user input.
-        return userCornerRadius;
+        // Expanded is always large, just use user setting.
+        // We will assume 150+ width, so 150/2 = 75 is max anyway.
+        return MIN(userCornerRadius, 50.0); // Safety cap at 50 for expanded modules
     }
     return orig;
 }
@@ -50,20 +49,26 @@ static void loadPrefs() {
 %end
 
 
-// Continuous sliders (Brightness, Volume)
+// For continuous sliders (Brightness, Volume)
 @interface CCUIContinuousSliderView : UIControl
 @property (assign,nonatomic) double continuousSliderCornerRadius;
 @end
 
 %hook CCUIContinuousSliderView
 
-- (void)layoutSubviews {
-    %orig;
+// The property is asked for when expanding/collapsing.
+// We will intercept the getter instead of setting it continuously in layoutSubviews.
+- (double)continuousSliderCornerRadius {
+    double orig = %orig;
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
+        if (minDim <= 0.0) {
+            minDim = 68.0;
+        }
         CGFloat maxRadius = minDim / 2.0;
-        self.continuousSliderCornerRadius = MIN(userCornerRadius, maxRadius);
+        return MIN(userCornerRadius, maxRadius);
     }
+    return orig;
 }
 
 %end
@@ -79,6 +84,9 @@ static void loadPrefs() {
     double orig = %orig;
     if (enabled) {
         CGFloat minDim = MIN(self.bounds.size.width, self.bounds.size.height);
+        if (minDim <= 0.0) {
+            minDim = 54.0; // Round buttons are usually ~54 on small iPhones
+        }
         CGFloat maxRadius = minDim / 2.0;
         return MIN(userCornerRadius, maxRadius);
     }
@@ -96,10 +104,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
     loadPrefs();
 
     #ifdef DEBUG
-    NSLog(@"[RoundCC] Tweak initialized");
-    NSLog(@"[RoundCC] CCUIContentModuleContainerViewController: %d", NSClassFromString(@"CCUIContentModuleContainerViewController") != nil);
-    NSLog(@"[RoundCC] CCUIRoundButton: %d", NSClassFromString(@"CCUIRoundButton") != nil);
-    NSLog(@"[RoundCC] CCUIContinuousSliderView: %d", NSClassFromString(@"CCUIContinuousSliderView") != nil);
+    NSLog(@"[RoundCC] Tweak initialized (v1.0.3)");
     #endif
 
     CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, kSettingsChangedNotification, NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
